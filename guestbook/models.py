@@ -7,4 +7,4 @@ class Guestbook(models.Model):
     entry_datetime = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        print(self.entry_text, " // ", self.writer_nickname, " (", entry_datetime,")", sep="")
+        print(self.entry_text, " // ", self.writer_nickname, " (", self.entry_datetime,")", sep="")
