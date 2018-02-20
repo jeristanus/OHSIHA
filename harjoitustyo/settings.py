@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Other apps
     'polls.apps.PollsConfig',
+    'guestbook.apps.GuestbookConfig',
 ]
 
 MIDDLEWARE = [
