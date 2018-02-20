@@ -6,4 +6,5 @@ app_name = "guestbook"
 
 urlpatterns = [
     path('', views.guestbook, name='guestbook'),
+    path('create_entry/', views.create_entry, name='create_entry')
 ]
