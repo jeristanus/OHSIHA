@@ -15,8 +15,18 @@ def guestbook(request):
     }
     return HttpResponse(template.render(context, request))
 
+
+def get_ip_address(request):
+    """ use requestobject to fetch client machine's IP Address """
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')    ### Real IP address of client Machine
+    return ip
+
+
 def create_entry(request):
-    # Display guestbook with an error.
     guestbook_entries = Guestbook.objects.order_by('-entry_datetime')[:50]
 
     try:
@@ -26,12 +36,13 @@ def create_entry(request):
             raise
 
     except:
+        # Display guestbook with an error.
         return render(request, 'guestbook/guestbook.html', {
         'guestbook_entries': guestbook_entries,
         'error_message': "Error when adding an entry! "+entry_text+" "+writer_nickname,
         })
     else:
-        entry = Guestbook(entry_text=entry_text, writer_nickname=writer_nickname)
+        entry = Guestbook(entry_text=entry_text, writer_nickname=writer_nickname, ipadress=get_ip_address(request))
         entry.save()
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
