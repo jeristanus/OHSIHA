@@ -1,2 +1,0 @@
-twitter_samples
-averaged_perceptron_tagger

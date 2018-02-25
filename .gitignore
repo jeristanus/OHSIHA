@@ -1,0 +1,9 @@
+venv
+*.pyc
+staticfiles
+.env
+*.sqlite3
+codetesting.py
+*/migrations/*
+*/development_settings.py
+codetesting.py
