@@ -42,7 +42,7 @@ def create_entry(request):
         'error_message': "Error when adding an entry! "+entry_text+" "+writer_nickname,
         })
     else:
-        entry = Guestbook(entry_text=entry_text, writer_nickname=writer_nickname, ipadress=get_ip_address(request))
+        entry = Guestbook(entry_text=entry_text, writer_nickname=writer_nickname, ipaddress=get_ip_address(request))
         entry.save()
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a

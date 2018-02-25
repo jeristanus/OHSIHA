@@ -1,0 +1,44 @@
+{% extends "tweetsentiment/base.html" %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="center-block">
+      <h1>OHSIHA Guestbook</h1>
+    </div>
+  </div>
+
+  {% if error_message %}
+  <div class="alert alert-danger" role="alert">
+    {{ error_message }}
+  </div>
+
+  {% endif %}
+</div>
+<div class="container">
+  {% if statuses %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Time</th>
+        <th scope="col">Status</th>
+        <th scope="col">By nickname</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for status in statuses %}
+      <tr>
+        <th scope="row">{{ forloop.counter }}</th>
+        <th scope="row">{{ status.created_at }}</th>
+        <th scope="row">{{ status.text }}</th>
+        <th scope="row">{{ status.user.screen_name }}</th>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No entries in the guestbook.</p>
+  {% endif %}
+</div>
+
+{% endblock %}
