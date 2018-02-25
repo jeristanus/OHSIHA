@@ -5,7 +5,7 @@ from django.urls import reverse
 import requests
 from requests_oauthlib import OAuth1
 from django.conf import settings
-import nltk
+from textblob import TextBlob
 
 from .models import *
 
@@ -35,9 +35,23 @@ def TweetSentiment(request):
                                     resource_owner_key=settings.TWITTER_ACCESS_TOKEN,
                                     resource_owner_secret=settings.TWITTER_ACCESS_TOKEN_SECRET))
 
+    tweetdata = []
+    # Let's run a sentiment analysis and compile a dataset for the template
+    sensitivity = 0.2   # Sensitivity determines easily a positive/negative tweet will be
+                        # shown with a green/red color
+
+    for tweet in tweets.json()['statuses']:
+        analysis = TextBlob(tweet['text'])
+        polarity_interpretation = 'positive' if analysis.sentiment.polarity > sensitivity else 'negative' if analysis.sentiment.polarity < -sensitivity else 'neutral'
+
+        tweetdata.append({'created_at': tweet['created_at'],
+                          'screen_name': tweet['user']['screen_name'],
+                          'text': tweet['text'],
+                          'sentiment': analysis.sentiment,
+                          'polarity_interpretation': polarity_interpretation})
 
     template = loader.get_template('tweetsentiment/tweetsentiment.html')
     context = {
-    'statuses': tweets.json()['statuses'],
+        'statuses': tweetdata,
     }
     return HttpResponse(template.render(context, request))
