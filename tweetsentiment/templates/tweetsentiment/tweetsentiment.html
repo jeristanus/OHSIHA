@@ -1,9 +1,24 @@
 {% extends "tweetsentiment/base.html" %}
 {% block content %}
-<div class="container">
+<div class="container" style="padding-top: 15px; padding-bottom: 15px;">
   <div class="row">
-    <div class="center-block">
-      <h1>OHSIHA Guestbook</h1>
+    <div class="col">
+      <form action="{% url 'tweetsentiment:tweetsentiment' %}" method="get">
+        {% csrf_token %}
+        <div class="form-row">
+          <div class="col-13 col-md-10 mb-2 mb-md-0">
+            <div class="input-group input-group-lg">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon1">#</span>
+              </div>
+              <input type="text" class="form-control" placeholder="hashtag" name="hashtag" value="{{ hashtag }}" required>
+            </div>
+          </div>
+          <div class="col-13 col-md-2">
+            <button type="submit" class="btn btn-block btn-lg btn-primary">Analyze!</button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -15,13 +30,13 @@
   {% endif %}
 </div>
 <div class="container">
+  {% if statuses %}
   <!-- /.panel -->
   <div class="panel panel-default">
     <div class="panel-heading">
       <i class="fa fa-clock-o fa-fw"></i> Responsive Timeline
     </div>
     <!-- /.panel-heading -->
-    {% if statuses %}
     <div class="panel-body">
       <ul class="timeline">
         {% for status in statuses %}
@@ -37,23 +52,26 @@
             </div>
           {% endif %}
           <div class="timeline-panel">
-            <div class="timeline-heading">
-              <h4 class="timeline-title">{{ status.screen_name }}</h4>
-              <p><small class="text-muted"><i class="fa fa-clock-o"></i> {{ status.created_at }} <span style="float:right;">Polarity: {{ status.sentiment.polarity|floatformat:1 }}</span></small>
-              </p>
-            </div>
             <div class="timeline-body">
               <p>{{ status.text }}</p>
+              <p><small class="text-muted">
+                <i class="fa fa-user"></i> <span style="padding-right:15px">{{ status.screen_name }}</span>
+                <i class="fa fa-clock-o"></i> <span style="padding-right:15px">{{ status.created_at }}</span>
+                <i class="fa fa-bolt"></i> <span>Polarity: {{ status.sentiment.polarity|floatformat:1 }}</span>
+              </small>
+              </p>
             </div>
           </div>
         </li>
         {% endfor %}
       </ul>
     </div>
-    {% endif %}
     <!-- /.panel-body -->
   </div>
   <!-- /.panel -->
+  {% else %}
+  <div class="alert alert-success">Enter a hashtag to begin!</div>
+  {% endif %}
 </div>
 
 {% endblock %}

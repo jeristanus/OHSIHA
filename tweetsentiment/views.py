@@ -18,10 +18,15 @@ def index(request):
 
 # Create your views here.
 def TweetSentiment(request):
-    # Let's see if we got a hashtag
-    if 'hashtag' not in request.GET or request.GET['hashtag'].find(" ") != -1:
-        # No hashtag provided! Let's return to the index Page
-        return render(request, 'tweetsentiment/index.html')
+    # Let's see if we have a hashtag
+    if 'hashtag' not in request.GET or request.GET['hashtag'] == "" or request.GET['hashtag'].find(" ") != -1:
+        # No hashtag provided!
+        template = loader.get_template('tweetsentiment/tweetsentiment.html')
+        context = {
+            'hashtag': "",
+        }
+        return HttpResponse(template.render(context, request))
+
 
     hashtag = request.GET['hashtag'].lower()
     # Let's remove the hashtag-sign from the beginning of the hashtag input
@@ -53,5 +58,6 @@ def TweetSentiment(request):
     template = loader.get_template('tweetsentiment/tweetsentiment.html')
     context = {
         'statuses': tweetdata,
+        'hashtag': hashtag,
     }
     return HttpResponse(template.render(context, request))
