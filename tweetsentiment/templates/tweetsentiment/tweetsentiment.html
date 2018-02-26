@@ -31,6 +31,7 @@
 </div>
 <div class="container">
   {% if statuses %}
+  {% load twitter_tags %}
   <!-- /.panel -->
   <div class="panel panel-default">
     <div class="panel-heading">
@@ -53,11 +54,11 @@
           {% endif %}
           <div class="timeline-panel">
             <div class="timeline-body">
-              <p>{{ status.text }}</p>
+              <p>{{ status.tweet.text }}</p>
               <p><small class="text-muted">
-                <i class="fa fa-user"></i> <span style="padding-right:15px">{{ status.screen_name }}</span>
-                <i class="fa fa-clock-o"></i> <span style="padding-right:15px">{{ status.created_at }}</span>
-                <i class="fa fa-bolt"></i> <span>Polarity: {{ status.sentiment.polarity|floatformat:1 }}</span>
+                <i class="fa fa-user"></i> <span style="padding-right:15px">{{ status.tweet.user.screen_name }}</span>
+                <i class="fa fa-clock-o"></i> <span style="padding-right:15px">{{ status.tweet.created_at|twitter_date|date:"d.m.Y H:i" }}</span>
+                <i class="fa fa-bolt"></i> <span>Polarity: {{ status.polarity_interpretation }} ({{ status.sentiment.polarity|floatformat:1 }})</span>
               </small>
               </p>
             </div>

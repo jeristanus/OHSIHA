@@ -6,6 +6,7 @@ import requests
 from requests_oauthlib import OAuth1
 from django.conf import settings
 from textblob import TextBlob
+import twitter
 
 from .models import *
 
@@ -34,24 +35,26 @@ def TweetSentiment(request):
         hashtag = hashtag[1:]
 
     # Let's get tweets
-    tweets = requests.get(url='https://api.twitter.com/1.1/search/tweets.json?q=%23'+hashtag+'&count=100',
-                        auth=OAuth1(settings.TWITTER_CONSUMER_KEY,
-                                    client_secret=settings.TWITTER_CONSUMER_SECRET,
-                                    resource_owner_key=settings.TWITTER_ACCESS_TOKEN,
-                                    resource_owner_secret=settings.TWITTER_ACCESS_TOKEN_SECRET))
+    twitter_api = twitter.Api(consumer_key=settings.TWITTER_CONSUMER_KEY,
+                                consumer_secret=settings.TWITTER_CONSUMER_SECRET,
+                                access_token_key=settings.TWITTER_ACCESS_TOKEN,
+                                access_token_secret=settings.TWITTER_ACCESS_TOKEN_SECRET)
+
+    twitter_api.SetCache(None)
+
+    tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', result_type='recent')
 
     tweetdata = []
     # Let's run a sentiment analysis and compile a dataset for the template
     sensitivity = 0.2   # Sensitivity determines easily a positive/negative tweet will be
                         # shown with a green/red color
 
-    for tweet in tweets.json()['statuses']:
-        analysis = TextBlob(tweet['text'])
-        polarity_interpretation = 'positive' if analysis.sentiment.polarity > sensitivity else 'negative' if analysis.sentiment.polarity < -sensitivity else 'neutral'
+    for status in tweets:
+        analysis = TextBlob(status.text)
+        polarity_interpretation = 'positive' if analysis.sentiment.polarity > sensitivity else \
+                                    'negative' if analysis.sentiment.polarity < -sensitivity else 'neutral'
 
-        tweetdata.append({'created_at': tweet['created_at'],
-                          'screen_name': tweet['user']['screen_name'],
-                          'text': tweet['text'],
+        tweetdata.append({'tweet': status,
                           'sentiment': analysis.sentiment,
                           'polarity_interpretation': polarity_interpretation})
 

@@ -7,3 +7,4 @@ codetesting.py
 */migrations/*
 */development_settings.py
 codetesting.py
+*/__pycache__
