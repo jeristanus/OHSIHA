@@ -21,23 +21,18 @@
       </form>
     </div>
   </div>
-
+</div>
+<div class="container">
   {% if error_message %}
   <div class="alert alert-danger" role="alert">
     {{ error_message }}
   </div>
-
-  {% endif %}
-</div>
-<div class="container">
-  {% if statuses %}
+  {% elif statuses %}
   {% load twitter_tags %}
-  <!-- /.panel -->
   <div class="panel panel-default">
     <div class="panel-heading">
       <i class="fa fa-clock-o fa-fw"></i> Responsive Timeline
     </div>
-    <!-- /.panel-heading -->
     <div class="panel-body">
       <ul class="timeline">
         {% for status in statuses %}
@@ -54,7 +49,7 @@
           {% endif %}
           <div class="timeline-panel">
             <div class="timeline-body">
-              <p>{{ status.tweet.text }}</p>
+              <p>{{ status.tweet.full_text }}</p>
               <p><small class="text-muted">
                 <i class="fa fa-user"></i> <span style="padding-right:15px">{{ status.tweet.user.screen_name }}</span>
                 <i class="fa fa-clock-o"></i> <span style="padding-right:15px">{{ status.tweet.created_at|twitter_date|date:"d.m.Y H:i" }}</span>
@@ -67,9 +62,7 @@
         {% endfor %}
       </ul>
     </div>
-    <!-- /.panel-body -->
   </div>
-  <!-- /.panel -->
   {% else %}
   <div class="alert alert-success">Enter a hashtag to begin!</div>
   {% endif %}

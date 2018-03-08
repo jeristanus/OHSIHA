@@ -2,9 +2,11 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
+
 import requests
 from requests_oauthlib import OAuth1
-from django.conf import settings
 from textblob import TextBlob
 import twitter
 
@@ -17,7 +19,7 @@ def index(request):
     return HttpResponse(template.render(context, request))
 
 
-# Create your views here.
+@login_required()
 def TweetSentiment(request):
     # Let's see if we have a hashtag
     if 'hashtag' not in request.GET or request.GET['hashtag'] == "" or request.GET['hashtag'].find(" ") != -1:
@@ -34,15 +36,25 @@ def TweetSentiment(request):
     if hashtag[0] == '#':
         hashtag = hashtag[1:]
 
-    # Let's get tweets
-    twitter_api = twitter.Api(consumer_key=settings.TWITTER_CONSUMER_KEY,
-                                consumer_secret=settings.TWITTER_CONSUMER_SECRET,
-                                access_token_key=settings.TWITTER_ACCESS_TOKEN,
-                                access_token_secret=settings.TWITTER_ACCESS_TOKEN_SECRET)
+    try:
+        # Let's get tweets
+        twitter_api = twitter.Api(consumer_key=settings.TWITTER_CONSUMER_KEY,
+                                    consumer_secret=settings.TWITTER_CONSUMER_SECRET,
+                                    access_token_key=settings.TWITTER_ACCESS_TOKEN,
+                                    access_token_secret=settings.TWITTER_ACCESS_TOKEN_SECRET,
+                                    tweet_mode='extended',
+                                    cache=None)
 
-    twitter_api.SetCache(None)
+        tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', result_type='recent')
+    except:
+        # Error fetching the tweets! Let's return an error message
+        template = loader.get_template('tweetsentiment/tweetsentiment.html')
+        context = {
+            'hashtag': hashtag,
+            'error_message': "Error when trying to get tweets!"
+        }
+        return HttpResponse(template.render(context, request))
 
-    tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', result_type='recent')
 
     tweetdata = []
     # Let's run a sentiment analysis and compile a dataset for the template
@@ -50,7 +62,7 @@ def TweetSentiment(request):
                         # shown with a green/red color
 
     for status in tweets:
-        analysis = TextBlob(status.text)
+        analysis = TextBlob(status.full_text)
         polarity_interpretation = 'positive' if analysis.sentiment.polarity > sensitivity else \
                                     'negative' if analysis.sentiment.polarity < -sensitivity else 'neutral'
 
@@ -62,5 +74,6 @@ def TweetSentiment(request):
     context = {
         'statuses': tweetdata,
         'hashtag': hashtag,
+        'user': request.user,
     }
     return HttpResponse(template.render(context, request))

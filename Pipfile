@@ -21,6 +21,7 @@ simplejson = "*"
 requests-oauthlib = "*"
 textblob = "*"
 python-twitter = "*"
+django-allauth = "*"
 
 
 [dev-packages]
