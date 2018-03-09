@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     # Other apps
-    'guestbook.apps.GuestbookConfig',
     'tweetsentiment.apps.TweetsentimentConfig'
 ]
 

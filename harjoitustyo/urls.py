@@ -20,7 +20,6 @@ from allauth import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('guestbook/', include('guestbook.urls')),
     path('', include('tweetsentiment.urls')),
     path('accounts/', include('allauth.urls')),
 ]
