@@ -10,7 +10,7 @@ class UserSettings(models.Model):
     # The threshold for considering a tweet positive or negative
     polarity_interpretation_sensitivity = models.FloatField(default=0.2)
     # The last hashtag the user searched
-    last_hashtag_searched = models.TextField(max_length=30, default="")
+    last_hashtag_searched = models.TextField(max_length=25, default="")
 
 
 # Functions to automate the creation and updating of UserSettings, when User -model is referenced and changed
