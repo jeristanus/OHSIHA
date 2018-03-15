@@ -19,14 +19,15 @@ def index(request):
     return HttpResponse(template.render(context, request))
 
 
-@login_required()
+@login_required
 def TweetSentiment(request):
     # Let's see if we have a hashtag
     if 'hashtag' not in request.GET or request.GET['hashtag'] == "" or request.GET['hashtag'].find(" ") != -1:
         # No hashtag provided!
         template = loader.get_template('tweetsentiment/tweetsentiment.html')
         context = {
-            'hashtag': "",
+            'hashtag': request.user.usersettings.last_hashtag_searched,
+            'user': request.user,
         }
         return HttpResponse(template.render(context, request))
 
@@ -57,9 +58,17 @@ def TweetSentiment(request):
 
 
     tweetdata = []
-    # Let's run a sentiment analysis and compile a dataset for the template
-    sensitivity = 0.2   # Sensitivity determines easily a positive/negative tweet will be
-                        # shown with a green/red color
+
+    #** Let's run a sentiment analysis and compile a dataset for the template **
+    # The sensitivity determines easily a positive/negative tweet will be shown with a green/red color
+    # Let's save a a new sensitivity the user gave, or use the previous value
+    try:
+        sensitivity = float(request.GET['polaritySensitivity'])
+        request.user.usersettings.polarity_interpretation_sensitivity = sensitivity
+        request.user.usersettings.last_hashtag_searched = hashtag
+        request.user.usersettings.save()
+    except:
+        sensitivity = request.user.usersettings.polarity_interpretation_sensitivity
 
     for status in tweets:
         analysis = TextBlob(status.full_text)
