@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "00dfa456d74e07ff94e966d425517f66943ee0fc45e743c79159362cadeb67fa"
+            "sha256": "8ecc206e03ba40df16f90be1ed2619b07191d7900638fc26f111297a140b6342"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -76,6 +76,13 @@
             ],
             "version": "==0.16.0"
         },
+        "googlemaps": {
+            "hashes": [
+                "sha256:8091b8362691063ce8a82a352c901f16be3d9a516a2c04e039e1e78bc0c8d8b4",
+                "sha256:fcd5792aa5dae3c5d7200da64dd6494ff0a1b9ac4d1ff50c0b4f7ad788a3f10f"
+            ],
+            "version": "==2.5.1"
+        },
         "gunicorn": {
             "hashes": [
                 "sha256:75af03c99389535f218cc596c7de74df4763803f7b63eb09d77e92b3956b36c6",
@@ -99,9 +106,10 @@
         },
         "oauthlib": {
             "hashes": [
-                "sha256:ce57b501e906ff4f614e71c36a3ab9eacbb96d35c24d1970d2539bbc3ec70ce1"
+                "sha256:09d438bcac8f004ae348e721e9d8a7792a9e23cd574634e973173344046287f5",
+                "sha256:909665297635fa11fe9914c146d875f2ed41c8c2d78e21a529dd71c0ba756508"
             ],
-            "version": "==2.0.6"
+            "version": "==2.0.7"
         },
         "psycopg2": {
             "hashes": [
@@ -141,10 +149,10 @@
         },
         "python-twitter": {
             "hashes": [
-                "sha256:9f299e76080b3a3b1f937940c716eddf7892ac47e2886c74c933c4f52efb7dfe",
-                "sha256:0f76dabb141606126a188b7147316d7184bea81a694f8df69a25b8a2071f5976"
+                "sha256:7a8583edd6a7fde3b84e8db7e7e68d80c146c628876bcbe9379a66212c5e8d0b",
+                "sha256:038c2af8131fab423e242386c7ee30334ef6b71cacea1c8f74f095a09cef6979"
             ],
-            "version": "==3.4"
+            "version": "==3.4.1"
         },
         "python3-openid": {
             "hashes": [

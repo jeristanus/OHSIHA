@@ -11,6 +11,7 @@ from textblob import TextBlob
 import twitter
 
 from .models import *
+from .tools import *
 
 def index(request):
     # Index of the page
@@ -38,7 +39,7 @@ def TweetSentiment(request):
         hashtag = hashtag[1:]
 
     try:
-        # Let's get tweets
+        # Let's get apis
         twitter_api = twitter.Api(consumer_key=settings.TWITTER_CONSUMER_KEY,
                                     consumer_secret=settings.TWITTER_CONSUMER_SECRET,
                                     access_token_key=settings.TWITTER_ACCESS_TOKEN,
@@ -46,7 +47,9 @@ def TweetSentiment(request):
                                     tweet_mode='extended',
                                     cache=None)
 
+        # Let's get the tweets
         tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', result_type='recent')
+
     except:
         # Error fetching the tweets! Let's return an error message
         template = loader.get_template('tweetsentiment/tweetsentiment.html')
@@ -56,6 +59,7 @@ def TweetSentiment(request):
         }
         return HttpResponse(template.render(context, request))
 
+    print("Tweets loaded:", len(tweets))
 
     tweetdata = []
 
@@ -70,14 +74,19 @@ def TweetSentiment(request):
     except:
         sensitivity = request.user.usersettings.polarity_interpretation_sensitivity
 
+    # Let's do the analysis
     for status in tweets:
-        analysis = TextBlob(status.full_text)
+        # Let's prepare the tweet for analysis and analyze it
+        extended_tweet = get_extended_tweet_text(status)
+        analysis = TextBlob(prepare_tweet_for_textblob(extended_tweet))
         polarity_interpretation = 'positive' if analysis.sentiment.polarity > sensitivity else \
                                     'negative' if analysis.sentiment.polarity < -sensitivity else 'neutral'
 
         tweetdata.append({'tweet': status,
+                          'extended_tweet': extended_tweet,
                           'sentiment': analysis.sentiment,
-                          'polarity_interpretation': polarity_interpretation})
+                          'polarity_interpretation': polarity_interpretation,
+                          'location': get_tweet_location(status)})
 
     template = loader.get_template('tweetsentiment/tweetsentiment.html')
     context = {
