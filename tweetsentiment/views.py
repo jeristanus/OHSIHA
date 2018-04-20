@@ -50,9 +50,9 @@ def TweetSentiment(request):
         # Let's get the tweets
         tweets = []
         last_tweet_id = None
-        for _ in range(2):
+        for _ in range(1):
             if last_tweet_id is None:
-                new_tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', result_type='recent', count=100)
+                new_tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', result_type='recent', count=50)
                 last_tweet_id = new_tweets[-1].id
                 tweets.extend(new_tweets)
             else:
