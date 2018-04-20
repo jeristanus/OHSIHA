@@ -48,7 +48,17 @@ def TweetSentiment(request):
                                     cache=None)
 
         # Let's get the tweets
-        tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', result_type='recent')
+        tweets = []
+        last_tweet_id = None
+        for _ in range(2):
+            if last_tweet_id is None:
+                new_tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', result_type='recent', count=100)
+                last_tweet_id = new_tweets[-1].id
+                tweets.extend(new_tweets)
+            else:
+                new_tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', max_id=last_tweet_id, result_type='recent', count=100)
+                last_tweet_id = new_tweets[-1].id - 1
+                tweets.extend(new_tweets)
 
     except:
         # Error fetching the tweets! Let's return an error message
@@ -82,16 +92,31 @@ def TweetSentiment(request):
         polarity_interpretation = 'positive' if analysis.sentiment.polarity > sensitivity else \
                                     'negative' if analysis.sentiment.polarity < -sensitivity else 'neutral'
 
+
+        location = get_tweet_location(status)
+        #get_tweet_location_threaded(status, location)
+
         tweetdata.append({'tweet': status,
                           'extended_tweet': extended_tweet,
                           'sentiment': analysis.sentiment,
                           'polarity_interpretation': polarity_interpretation,
-                          'location': get_tweet_location(status)})
+                          'location': location})
+
+    # Let's wait for all the threads to finish
+    # join_tweet_location_threads()
+
+    # Let's "unlist" all the location data
+    # for i in range(0, len(tweetdata)):
+    #    tweetdata[i]['location'] = tweetdata[i]['location'][0]
+
+    # Let's get the uState passable dataset of the US sentiments
+    uState_data = create_US_state_average_sentiments(tweetdata)
 
     template = loader.get_template('tweetsentiment/tweetsentiment.html')
     context = {
         'statuses': tweetdata,
         'hashtag': hashtag,
         'user': request.user,
+        'uState_data': uState_data,
     }
     return HttpResponse(template.render(context, request))

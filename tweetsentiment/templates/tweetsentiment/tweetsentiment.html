@@ -1,4 +1,5 @@
 {% extends "tweetsentiment/base.html" %}
+{% load static %}
 {% block content %}
 <div class="container" style="padding-top: 15px; padding-bottom: 15px;">
   <div class="row">
@@ -46,6 +47,38 @@
   </div>
   {% elif statuses %}
   {% load twitter_tags %}
+  <div class="row">
+    <div id="tooltip"></div><!-- div to hold tooltip. -->
+      <svg width="960" height="600" id="statesvg"></svg> <!-- svg to hold the map. -->
+      <script src="{% static "js/uStates.js" %}"></script> <!-- creates uStates. -->
+      <script src="http://d3js.org/d3.v3.min.js"></script>
+      <script src="https://d3js.org/d3-scale.v2.min.js"></script>
+      <script>
+      	function tooltipHtml(n, d){	/* function to create html content string in tooltip div. */
+      		return "<h4>"+n+"</h4><table>"+
+      			"<tr><td>Average</td><td>"+(d.average)+"</td></tr>"+
+            "<tr><td>Tweets</td><td>"+(d.count)+"</td></tr>"+
+      			"</table>";
+      	}
+
+        var colorscale = d3.scaleLinear()
+          .domain([-1, 0, 1])
+          .range(["red", "white", "green"]);
+
+
+        var sentimentdata = {{ uState_data|safe }};
+        /* Let's add the coloring */
+        Object.keys(sentimentdata).forEach(function(d){
+          sentimentdata[d].color = d3.hcl(colorscale(sentimentdata[d]["average"])).toString()
+        });
+
+      	/* draw states on id #statesvg */
+      	uStates.draw("#statesvg", sentimentdata, tooltipHtml);
+
+      	d3.select(self.frameElement).style("height", "600px");
+      </script>
+
+  </div>
   <div class="panel panel-default">
     <div class="panel-body">
       <ul class="timeline">
