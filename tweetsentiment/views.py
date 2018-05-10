@@ -89,17 +89,35 @@ def TweetSentiment(request):
 @authentication_classes((SessionAuthentication, BasicAuthentication))
 @permission_classes((IsAuthenticated,))
 def api_get_tweets(request, hashtag, count):
-    if request.method == 'GET':
-        # Let's get the user's polaritySensitivity
-        polaritySensitivity = request.user.usersettings.polarity_interpretation_sensitivity
-        print("PolaritySensitivity:", polaritySensitivity)
+    # Let's get the user's polaritySensitivity
+    polaritySensitivity = request.user.usersettings.polarity_interpretation_sensitivity
+    print("PolaritySensitivity:", polaritySensitivity)
 
-        # API is currently limited to max 100 tweet. If the user asks for more, let's return an error
-        if count > 100:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+    # API is currently limited to max 100 tweet. If the user asks for more, let's return an error
+    if count > 100:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        # Location data is omitted from API calls, as those take a lot of time
-        tweetdata = get_and_sentimentanalyze_tweets(hashtag, sensitivity=polaritySensitivity, count=count, getlocation=False, include_original_status=False)
-        return Response(tweetdata)
-    else:
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    # Location data is omitted from API calls, as those take a lot of time
+    tweetdata = get_and_sentimentanalyze_tweets(hashtag, sensitivity=polaritySensitivity, count=count, getlocation=False, include_original_status=False)
+    return Response(tweetdata)
+
+
+@api_view(['PUT'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+@permission_classes((IsAuthenticated,))
+def api_set_sensitivity(request, polaritySensitivity):
+    # Let's set the user's polaritySensitivity
+    try:
+        polaritySensitivity = float(polaritySensitivity)
+        # Let's check if the sensitivity is within the required interval
+        if polaritySensitivity < 0 or 1 < polaritySensitivity:
+            # The sensitivity is under 0 or over 1, which is not permitted
+            Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+
+        # Let's set the new sensitivity
+        request.user.usersettings.polarity_interpretation_sensitivity = polaritySensitivity
+        request.user.usersettings.save()
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+    except:
+        return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
