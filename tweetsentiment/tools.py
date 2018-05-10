@@ -5,6 +5,8 @@ import simplejson
 import re
 import googlemaps
 
+from .models import geocode_record
+
 # Max number of threads to use
 MAXTHREADS = 20
 
@@ -110,6 +112,30 @@ def get_tweet_location(tweet):
     return (None, None)
 
 
+# Get's the tweet location from the database, if a geocoding record already exists.
+# Otherwise the tweet location is fetched and the geocoding result is saved to the database.
+def get_tweet_location_cached(tweet):
+    # If the there is no location, return none
+    if tweet.user.location.strip() == "":
+        return (None, None)
+
+    # Let's do the geocoding
+    try:
+        # Let's see if the geocoding result can be found from database
+        record = geocode_record.objects.get(twitter_location=tweet.user.location)
+
+        print("[!] LOADED A PREVIOUSLY SAVED GEOCODING")
+
+        # and let's return the record
+        return (record.geocode_state, record.geocode_country,)
+    except geocode_record.DoesNotExist:
+        # No data in the database! Let's get the location and save it in the database
+        location = get_tweet_location(tweet)
+        geocode_record.objects.create(twitter_location=tweet.user.location,
+                                        geocode_state=location[0],
+                                        geocode_country=location[1])
+        return location
+
 ## Threaded version of get_tweet_location(...) for making the geocoding faster
 # list for keeping track of threads
 threads = []
@@ -133,6 +159,7 @@ def get_tweet_location_threaded(tweet, save_to_list):
     t = threading.Thread(target=tweet_location_to_list, args=(tweet, save_to_list,))
     threads.append(t)
     t.start()
+
 
 # Used to join the geolocating threads, so that that all the threads are finished before continuing
 def join_tweet_location_threads():

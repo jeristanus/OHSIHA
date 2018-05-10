@@ -12,7 +12,6 @@ class UserSettings(models.Model):
     # The last hashtag the user searched
     last_hashtag_searched = models.TextField(max_length=25, default="")
 
-
 # Functions to automate the creation and updating of UserSettings, when User -model is referenced and changed
 @receiver(post_save, sender=User)
 def create_UserSettings(sender, instance, created, **kwargs):
@@ -23,3 +22,11 @@ def create_UserSettings(sender, instance, created, **kwargs):
 def save_UserSettings(sender, instance, **kwargs):
     instance.usersettings.save()
     pass
+
+
+# Geocode_record is used to save the geocoding results from google.
+# This makes the app faster, as the geocoding doesn't need to be done multiple times for the same location
+class geocode_record(models.Model):
+    twitter_location = models.TextField(max_length=60, primary_key=True)
+    geocode_state = models.TextField(max_length=30, null=True)
+    geocode_country = models.TextField(max_length=40, null=True)

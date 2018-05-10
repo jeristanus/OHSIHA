@@ -24,7 +24,7 @@ def get_and_sentimentanalyze_tweets(hashtag, sensitivity, count=100, getlocation
         # Let's get the tweets
         tweets = []
         last_tweet_id = None
-        for _ in range(1):
+        for _ in range(2):
             if last_tweet_id is None:
                 new_tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', result_type='recent', count=count)
                 last_tweet_id = new_tweets[-1].id
@@ -50,10 +50,9 @@ def get_and_sentimentanalyze_tweets(hashtag, sensitivity, count=100, getlocation
         polarity_interpretation = 'positive' if analysis.sentiment.polarity > sensitivity else \
                                     'negative' if analysis.sentiment.polarity < -sensitivity else 'neutral'
 
-
         # Let's get the location, if the user wants to
         if getlocation:
-            location = get_tweet_location(status)
+            location = get_tweet_location_cached(status)
         else:
             location = None
 
