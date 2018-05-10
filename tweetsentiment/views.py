@@ -4,14 +4,17 @@ from django.template import loader
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 
-import requests
-from requests_oauthlib import OAuth1
-from textblob import TextBlob
-import twitter
+from rest_framework import status
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .models import *
 from .tools import *
+from .tweetsentiment import *
 
 def index(request):
     # Index of the page
@@ -34,44 +37,6 @@ def TweetSentiment(request):
 
 
     hashtag = request.GET['hashtag'].lower()
-    # Let's remove the hashtag-sign from the beginning of the hashtag input
-    if hashtag[0] == '#':
-        hashtag = hashtag[1:]
-
-    try:
-        # Let's get apis
-        twitter_api = twitter.Api(consumer_key=settings.TWITTER_CONSUMER_KEY,
-                                    consumer_secret=settings.TWITTER_CONSUMER_SECRET,
-                                    access_token_key=settings.TWITTER_ACCESS_TOKEN,
-                                    access_token_secret=settings.TWITTER_ACCESS_TOKEN_SECRET,
-                                    tweet_mode='extended',
-                                    cache=None)
-
-        # Let's get the tweets
-        tweets = []
-        last_tweet_id = None
-        for _ in range(1):
-            if last_tweet_id is None:
-                new_tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', result_type='recent', count=50)
-                last_tweet_id = new_tweets[-1].id
-                tweets.extend(new_tweets)
-            else:
-                new_tweets = twitter_api.GetSearch(term="#"+hashtag, lang='en', max_id=last_tweet_id, result_type='recent', count=100)
-                last_tweet_id = new_tweets[-1].id - 1
-                tweets.extend(new_tweets)
-
-    except:
-        # Error fetching the tweets! Let's return an error message
-        template = loader.get_template('tweetsentiment/tweetsentiment.html')
-        context = {
-            'hashtag': hashtag,
-            'error_message': "Error when trying to get tweets!"
-        }
-        return HttpResponse(template.render(context, request))
-
-    print("Tweets loaded:", len(tweets))
-
-    tweetdata = []
 
     #** Let's run a sentiment analysis and compile a dataset for the template **
     # The sensitivity determines easily a positive/negative tweet will be shown with a green/red color
@@ -84,23 +49,17 @@ def TweetSentiment(request):
     except:
         sensitivity = request.user.usersettings.polarity_interpretation_sensitivity
 
-    # Let's do the analysis
-    for status in tweets:
-        # Let's prepare the tweet for analysis and analyze it
-        extended_tweet = get_extended_tweet_text(status)
-        analysis = TextBlob(prepare_tweet_for_textblob(extended_tweet))
-        polarity_interpretation = 'positive' if analysis.sentiment.polarity > sensitivity else \
-                                    'negative' if analysis.sentiment.polarity < -sensitivity else 'neutral'
+    # Let's get the tweetdata
+    tweetdata = get_and_sentimentanalyze_tweets(hashtag, sensitivity)
+    if tweetdata == TWEETSENTIMENT_ERROR:
+        # Error fetching the tweets! Let's return an error message
+        template = loader.get_template('tweetsentiment/tweetsentiment.html')
+        context = {
+            'hashtag': hashtag,
+            'error_message': "Error when trying to get tweets!"
+        }
+        return HttpResponse(template.render(context, request))
 
-
-        location = get_tweet_location(status)
-        #get_tweet_location_threaded(status, location)
-
-        tweetdata.append({'tweet': status,
-                          'extended_tweet': extended_tweet,
-                          'sentiment': analysis.sentiment,
-                          'polarity_interpretation': polarity_interpretation,
-                          'location': location})
 
     # Let's wait for all the threads to finish
     # join_tweet_location_threads()
@@ -120,3 +79,27 @@ def TweetSentiment(request):
         'uState_data': uState_data,
     }
     return HttpResponse(template.render(context, request))
+
+
+###############################
+# Views for the rest API access
+
+# Returns the <count> number of latest tweets with the hashtag <hashtag>
+@api_view(['GET'])
+@authentication_classes((SessionAuthentication, BasicAuthentication))
+@permission_classes((IsAuthenticated,))
+def api_get_tweets(request, hashtag, count):
+    if request.method == 'GET':
+        # Let's get the user's polaritySensitivity
+        polaritySensitivity = request.user.usersettings.polarity_interpretation_sensitivity
+        print("PolaritySensitivity:", polaritySensitivity)
+
+        # API is currently limited to max 100 tweet. If the user asks for more, let's return an error
+        if count > 100:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        # Location data is omitted from API calls, as those take a lot of time
+        tweetdata = get_and_sentimentanalyze_tweets(hashtag, sensitivity=polaritySensitivity, count=count, getlocation=False, include_original_status=False)
+        return Response(tweetdata)
+    else:
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)

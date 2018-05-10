@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    # Rest framework
+    'rest_framework',
     # Other apps
     'tweetsentiment.apps.TweetsentimentConfig'
 ]

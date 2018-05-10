@@ -23,6 +23,8 @@ textblob = "*"
 python-twitter = "*"
 django-allauth = "*"
 googlemaps = "*"
+djangorestframework = "*"
+httpie = "*"
 
 
 [dev-packages]
